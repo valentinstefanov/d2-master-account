@@ -1,0 +1,16 @@
+{% extends 'base.html.twig' %}
+{% block title %}Home{% endblock %}
+{% block body %}
+    <div class="container">
+        <h1>Welcome to the Home Page</h1>
+        {% if is_granted('IS_AUTHENTICATED_FULLY') %}
+            <p>Welcome back, {{ app.user.email }}!</p>
+            <a href="{{ path('app_accounts') }}" class="btn btn-primary">Go to Accounts</a>
+        {% else %}
+            <div style="margin-top: 2em;">
+                <a href="{{ path('app_login') }}" class="btn btn-primary" style="margin-right: 1em;">Login</a>
+                <a href="{{ path('app_register') }}" class="btn btn-success">Register</a>
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

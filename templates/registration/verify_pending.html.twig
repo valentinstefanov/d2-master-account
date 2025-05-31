@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+{% block title %}Verify Your Email{% endblock %}
+{% block body %}
+    <h1>Thank you for registering!</h1>
+    <p>A verification email has been sent to your address. Please check your inbox and click the link to verify your account.</p>
+    {% if not resend_used %}
+        <form method="post" action="{{ path('app_resend_verification_email') }}">
+            <button type="submit">Resend verification email</button>
+        </form>
+    {% else %}
+        <p>You have already requested a resend.</p>
+    {% endif %}
+{% endblock %}
