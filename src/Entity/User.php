@@ -36,6 +36,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private bool $isVerified = false;
 
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private $locked = false;
+
+    #[ORM\Column(type: 'string', length: 45, nullable: true)]
+    private $registrationIp;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -118,6 +124,28 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $this->isVerified = $isVerified;
 
+        return $this;
+    }
+
+    public function isLocked(): bool
+    {
+        return $this->locked;
+    }
+
+    public function setLocked(bool $locked): self
+    {
+        $this->locked = $locked;
+        return $this;
+    }
+
+    public function getRegistrationIp(): ?string
+    {
+        return $this->registrationIp;
+    }
+
+    public function setRegistrationIp(?string $registrationIp): self
+    {
+        $this->registrationIp = $registrationIp;
         return $this;
     }
 }
