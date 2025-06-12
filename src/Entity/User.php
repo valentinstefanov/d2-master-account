@@ -42,6 +42,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'string', length: 45, nullable: true)]
     private $registrationIp;
 
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Bnet::class)]
+    private $bnetAccounts;
+
+    public function __construct()
+    {
+        $this->bnetAccounts = new \Doctrine\Common\Collections\ArrayCollection();
+    }
+
     public function getId(): ?int
     {
         return $this->id;
@@ -147,5 +155,13 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $this->registrationIp = $registrationIp;
         return $this;
+    }
+
+    /**
+     * @return \Doctrine\Common\Collections\Collection|Bnet[]
+     */
+    public function getBnetAccounts()
+    {
+        return $this->bnetAccounts;
     }
 }

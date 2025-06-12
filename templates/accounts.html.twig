@@ -1,6 +1,131 @@
 {% extends 'base.html.twig' %}
 {% block title %}Accounts{% endblock %}
 {% block body %}
-    <h1>Accounts Page</h1>
-    <p>Welcome to your accounts page. (This is placeholder content.)</p>
+    <h1>Create New Game Account</h1>
+    {% if error %}
+        <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+    {% if success %}
+        <div class="alert alert-success">Account created successfully!</div>
+    {% endif %}
+    {{ form_start(form) }}
+        {{ form_row(form.acctUsername) }}
+        {{ form_row(form.password) }}
+        {{ form_row(form.verifyPassword) }}
+        <button class="btn btn-primary">Create Account</button>
+    {{ form_end(form) }}
+
+    <h2 class="mt-4">Registered Game Accounts</h2>
+    {% if accounts|length == 0 %}
+        <p>No game accounts registered yet.</p>
+    {% else %}
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for account in accounts %}
+                <tr>
+                    <td>{{ account.acctUsername }}</td>
+                    <td>{{ account.acctCtime ?: 'N/A' }}</td>
+                    <td>
+                        <button class="btn btn-sm btn-secondary" onclick="showChangePasswordModal({{ account.uid }}, '{{ account.acctUsername|e('js') }}')">Change Password</button>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <div id="changePasswordModal" class="custom-modal" style="display:none;">
+          <div class="custom-modal-content custom-modal-dark">
+            <span class="custom-modal-close" onclick="closeChangePasswordModal()">&times;</span>
+            <h5>Change Password for <span id="modalAcctUsername"></span></h5>
+            <div id="changePasswordError" class="alert alert-danger d-none"></div>
+            <div id="changePasswordSuccess" class="alert alert-success d-none"></div>
+            <form id="changePasswordForm">
+              <input type="hidden" id="modalAccountId">
+              <div class="mb-3">
+                <label for="oldPassword" class="form-label">Old Password</label>
+                <input type="password" class="form-control" id="oldPassword" required minlength="6" maxlength="64">
+              </div>
+              <div class="mb-3">
+                <label for="newPassword" class="form-label">New Password</label>
+                <input type="password" class="form-control" id="newPassword" required minlength="6" maxlength="64">
+              </div>
+              <div class="mb-3">
+                <label for="verifyPassword" class="form-label">Verify Password</label>
+                <input type="password" class="form-control" id="verifyPassword" required minlength="6" maxlength="64">
+              </div>
+              <button type="submit" class="btn btn-primary">Change Password</button>
+            </form>
+          </div>
+        </div>
+        <style>
+        .custom-modal {
+          position: fixed; z-index: 1050; left: 0; top: 0; width: 100vw; height: 100vh;
+          background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center;
+        }
+        .custom-modal-content.custom-modal-dark {
+          background: #23272b; color: #f8f9fa; padding: 2rem; border-radius: 8px; min-width: 350px; position: relative;
+          box-shadow: 0 0 24px 0 #000a;
+        }
+        .custom-modal-close {
+          position: absolute; right: 1rem; top: 1rem; font-size: 2rem; cursor: pointer; color: #f8f9fa;
+        }
+        .custom-modal-content label, .custom-modal-content input, .custom-modal-content button {
+          color: #f8f9fa;
+        }
+        .custom-modal-content input, .custom-modal-content button {
+          background: #343a40; border: 1px solid #495057;
+        }
+        .custom-modal-content input:focus {
+          background: #23272b; color: #fff;
+        }
+        </style>
+    {% endif %}
+
+    <script>
+    function showChangePasswordModal(accountId, acctUsername) {
+        document.getElementById('modalAccountId').value = accountId;
+        document.getElementById('modalAcctUsername').textContent = acctUsername;
+        document.getElementById('changePasswordError').classList.add('d-none');
+        document.getElementById('changePasswordSuccess').classList.add('d-none');
+        document.getElementById('changePasswordForm').reset();
+        document.getElementById('changePasswordModal').style.display = 'flex';
+    }
+    function closeChangePasswordModal() {
+        document.getElementById('changePasswordModal').style.display = 'none';
+    }
+    document.getElementById('changePasswordForm').onsubmit = async function(e) {
+        e.preventDefault();
+        const id = document.getElementById('modalAccountId').value;
+        const oldPassword = document.getElementById('oldPassword').value;
+        const newPassword = document.getElementById('newPassword').value;
+        const verifyPassword = document.getElementById('verifyPassword').value;
+        const errorDiv = document.getElementById('changePasswordError');
+        const successDiv = document.getElementById('changePasswordSuccess');
+        errorDiv.classList.add('d-none');
+        successDiv.classList.add('d-none');
+        const resp = await fetch('/accounts/change-password/' + id, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+            body: JSON.stringify({ oldPassword, newPassword, verifyPassword })
+        });
+        const data = await resp.json();
+        if (data.success) {
+            successDiv.textContent = data.message;
+            successDiv.classList.remove('d-none');
+            setTimeout(closeChangePasswordModal, 1500);
+        } else {
+            errorDiv.textContent = data.error;
+            errorDiv.classList.remove('d-none');
+        }
+    };
+    </script>
+{% endblock %}
+{% block javascripts %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
 {% endblock %}
