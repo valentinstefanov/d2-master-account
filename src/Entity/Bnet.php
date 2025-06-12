@@ -343,7 +343,7 @@ class Bnet
     public function setAcctCtime(?string $acctCtime = null): static 
     {
         if ($acctCtime === null) {
-            $this->acctCtime = (new \DateTimeImmutable())->format('Y-m-d H:i:s');
+            $this->acctCtime = (string) time(); // Set to current time if null
         } else {
             $this->acctCtime = $acctCtime;
         }
