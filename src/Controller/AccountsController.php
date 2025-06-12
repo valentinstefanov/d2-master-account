@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Bnet;
 use App\Form\BnetAccountType;
+use App\Service\PvPGNPasswordHasher;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -13,6 +14,8 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 
 class AccountsController extends AbstractController
 {
+    public function __construct(private PvPGNPasswordHasher $pvpgnPasswordHasher) {}
+
     #[IsGranted('IS_AUTHENTICATED_FULLY')]
     #[Route('/accounts', name: 'accounts')]
     public function index(Request $request, EntityManagerInterface $em): Response
@@ -34,7 +37,7 @@ class AccountsController extends AbstractController
             } elseif ($password !== $verifyPassword) {
                 $error = 'Passwords do not match.';
             } else {
-                $bnet->setAcctPasshash1(password_hash($password, PASSWORD_BCRYPT));
+                $bnet->setAcctPasshash1($this->pvpgnPasswordHasher->hash($password));
                 $bnet->setUid($bnet->getUid());
                 $bnet->setAcctUsername($bnet->getAcctUsername());
                 $bnet->setUser($this->getUser()); // Link to current user
@@ -72,7 +75,8 @@ class AccountsController extends AbstractController
         $newPassword = $data['newPassword'] ?? '';
         $verifyPassword = $data['verifyPassword'] ?? '';
 
-        if (!password_verify($oldPassword, $bnet->getAcctPasshash1())) {
+        // PvPGN hash is not a one-way hash, so we must hash the input and compare to the stored hash
+        if ($this->pvpgnPasswordHasher->hash($oldPassword) !== $bnet->getAcctPasshash1()) {
             return $this->json(['success' => false, 'error' => 'Old password is incorrect.']);
         }
         if (strlen($newPassword) < 6 || strlen($newPassword) > 64) {
@@ -81,7 +85,7 @@ class AccountsController extends AbstractController
         if ($newPassword !== $verifyPassword) {
             return $this->json(['success' => false, 'error' => 'Passwords do not match.']);
         }
-        $bnet->setAcctPasshash1(password_hash($newPassword, PASSWORD_BCRYPT));
+        $bnet->setAcctPasshash1($this->pvpgnPasswordHasher->hash($newPassword));
         $em->flush();
         return $this->json(['success' => true, 'message' => 'Password changed successfully.']);
     }

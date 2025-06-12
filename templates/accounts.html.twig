@@ -31,7 +31,7 @@
             {% for account in accounts %}
                 <tr>
                     <td>{{ account.acctUsername }}</td>
-                    <td>{{ account.acctCtime ?: 'N/A' }}</td>
+                    <td>{{ account.acctCtime ? account.acctCtime|date('Y-m-d H:i:s') : 'N/A' }}</td>
                     <td>
                         <button class="btn btn-sm btn-secondary" onclick="showChangePasswordModal({{ account.uid }}, '{{ account.acctUsername|e('js') }}')">Change Password</button>
                     </td>
